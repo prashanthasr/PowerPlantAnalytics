@@ -7,6 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.ge.predix.model.AssetResponse;
+import com.ge.predix.model.Data;
+import com.ge.predix.model.Timeseriesoutput;
 
 public class PowerGenEndPoint {
 	Logger logger = LoggerFactory.getLogger(PowerGenEndPoint.class);
@@ -20,11 +24,19 @@ public class PowerGenEndPoint {
 		HashMap<String, Integer> jsonDataMap = mapper.readValue(jsonInput, HashMap.class);
 		long voltage = jsonDataMap.get("voltage");
 		long ampere = jsonDataMap.get("ampere");
+		long timeStamp = jsonDataMap.get("timestamp");
 		
-		AdderResponse output = null;
-		output = new AdderResponse();
-		output.setResult(voltage*ampere);
+		Timeseriesoutput tsOutput = new Timeseriesoutput();
+		tsOutput.setPowerInWatts(voltage*ampere);
+		tsOutput.setTimeStamp(timeStamp);
+		Data data = new Data();
+		data.setTimeseriesOutput(tsOutput);
+		AssetResponse assetResponse = new AssetResponse();
+		assetResponse.setData(data);
+			
+		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 		
-		return mapper.writeValueAsString(output);
+		return mapper.writeValueAsString(assetResponse);
 	}
+	
 }
